@@ -203,6 +203,12 @@ export default function App() {
               <button onClick={() => handleDelete(i)} style={dangerBtn}>Elimina</button>
             </div>
           </div>
+      <div style={{ textAlign: "center", marginTop: 40 }}>
+  <img
+    src="https://nutsadv.it/wp-content/uploads/nuts_lettering_black.png"
+    style={{ height: 22, opacity: 0.6 }}
+  />
+</div>
         ))}
 
       </div>
@@ -234,10 +240,12 @@ const card = {
 
 const input = {
   width: "100%",
-  marginTop: 10,
-  padding: 10,
-  borderRadius: 8,
+  marginTop: 12,
+  padding: "12px 14px",
+  borderRadius: 10,
   border: "1px solid #ddd",
+  fontSize: 14,
+  boxSizing: "border-box",
 };
 
 const mainBtn = {
@@ -252,11 +260,13 @@ const mainBtn = {
 };
 
 const ghostBtn = {
-  padding: "6px 10px",
-  borderRadius: 8,
+  padding: "8px 12px",
+  borderRadius: 10,
   border: "1px solid #ddd",
   background: "#fff",
   marginRight: 8,
+  cursor: "pointer",
+  fontWeight: 500,
 };
 
 const dangerBtn = {
