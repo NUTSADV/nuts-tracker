@@ -20,6 +20,7 @@ export default function App() {
   const [end, setEnd] = useState("18:00");
   const [type, setType] = useState("");
   const [note, setNote] = useState("");
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("nuts_entries");
@@ -38,7 +39,10 @@ export default function App() {
   };
 
   const handleSubmit = () => {
-    if (!date) return;
+    if (!date) {
+      setError(true);
+      return;
+    }
 
     const newEntry = {
       id: editingId || Date.now(),
@@ -62,6 +66,7 @@ export default function App() {
     setEnd("18:00");
     setType("");
     setNote("");
+    setError(false);
   };
 
   const handleEdit = (entry) => {
@@ -105,31 +110,51 @@ export default function App() {
   const lastUpdate = new Date().toLocaleString("it-IT");
 
   return (
-    <div style={{padding:40, fontFamily:"Poppins, sans-serif", background:"#f6f6f6"}}>
+    <div style={{padding:40, fontFamily:"Poppins, sans-serif", background:"#f5f5f5"}}>
       
+      {/* HEADER */}
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-        <img src="https://nutsadv.it/wp-content/uploads/2018/02/600X600_LOGO_PNG_NERO.png" style={{width:80}}/>
+        <img src="https://nutsadv.it/wp-content/uploads/2018/02/600X600_LOGO_PNG_NERO.png" style={{width:90}}/>
         <div style={{textAlign:"right", fontSize:12}}>
           <b>Ultimo aggiornamento</b><br/>{lastUpdate}
         </div>
       </div>
 
-      <h1>Internship Tracker</h1>
+      <h1 style={{marginBottom:20}}>Internship Tracker</h1>
 
-      <div style={{background:"#fff", padding:20, borderRadius:12}}>
-        <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{width:"100%", marginBottom:10}}/>
+      {/* FORM */}
+      <div style={{
+        background:"#fff",
+        padding:24,
+        borderRadius:16,
+        boxShadow:"0 4px 20px rgba(0,0,0,0.05)",
+        border: editingId ? "2px solid #000" : "1px solid #eee"
+      }}>
 
-        <div style={{display:"flex", gap:10}}>
-          <input type="time" value={start} onChange={e=>setStart(e.target.value)}/>
-          <input type="time" value={end} onChange={e=>setEnd(e.target.value)}/>
+        <input
+          type="date"
+          value={date}
+          onChange={e=>{setDate(e.target.value); setError(false)}}
+          style={{
+            width:"100%",
+            padding:12,
+            borderRadius:10,
+            border: error ? "2px solid red" : "1px solid #ddd",
+            marginBottom:12
+          }}
+        />
+
+        <div style={{display:"flex", gap:12}}>
+          <input type="time" value={start} onChange={e=>setStart(e.target.value)} style={inputStyle}/>
+          <input type="time" value={end} onChange={e=>setEnd(e.target.value)} style={inputStyle}/>
         </div>
 
-        <div style={{marginTop:10}}>
-          <button onClick={()=>{setStart("10:00"); setEnd("18:00")}}>+8h</button>
-          <button onClick={()=>{setStart("14:00"); setEnd("18:00")}}>+4h</button>
+        <div style={{marginTop:12, display:"flex", gap:10}}>
+          <button style={ghostBtn} onClick={()=>{setStart("10:00"); setEnd("18:00")}}>+8h</button>
+          <button style={ghostBtn} onClick={()=>{setStart("14:00"); setEnd("18:00")}}>+4h</button>
         </div>
 
-        <select value={type} onChange={e=>setType(e.target.value)} style={{width:"100%", marginTop:10}}>
+        <select value={type} onChange={e=>setType(e.target.value)} style={{...inputStyle, marginTop:12}}>
           <option value="">Tipo attività</option>
           <option>Video Production</option>
           <option>Graphic Design</option>
@@ -140,25 +165,33 @@ export default function App() {
           <option>Altro</option>
         </select>
 
-        <textarea placeholder="Dettaglio attività" value={note} onChange={e=>setNote(e.target.value)} style={{width:"100%", marginTop:10}}/>
+        <textarea
+          placeholder="Dettaglio attività"
+          value={note}
+          onChange={e=>setNote(e.target.value)}
+          style={{...inputStyle, marginTop:12, minHeight:80}}
+        />
 
-        <button onClick={handleSubmit} style={{marginTop:10, width:"100%"}}>
+        <button style={primaryBtn} onClick={handleSubmit}>
           {editingId ? "Salva modifica" : "Aggiungi giornata"}
         </button>
       </div>
 
-      <div style={{marginTop:20, background:"#fff", padding:20, borderRadius:12}}>
+      {/* PROGRESS */}
+      <div style={cardStyle}>
         <b>Avanzamento {progress.toFixed(1)}%</b>
-        <div style={{height:6, background:"#ddd", margin:"10px 0"}}>
-          <div style={{width:`${progress}%`, height:6, background:"#000"}}></div>
+
+        <div style={{height:6, background:"#eee", margin:"10px 0", borderRadius:10}}>
+          <div style={{width:`${progress}%`, height:6, background:"#000", borderRadius:10}}></div>
         </div>
 
         <div style={{display:"flex", justifyContent:"space-between"}}>
-          <div><b>Svolte</b><br/>{totalHours}h</div>
-          <div><b>Rimangono</b><br/>{remaining}h</div>
+          <div><span style={{fontSize:12}}>Svolte</span><br/><b>{totalHours}h</b></div>
+          <div style={{textAlign:"right"}}><span style={{fontSize:12}}>Rimangono</span><br/><b>{remaining}h</b></div>
         </div>
       </div>
 
+      {/* LISTA */}
       {orderedKeys.map(key=>{
         const [year, month] = key.split("-");
         return (
@@ -168,31 +201,35 @@ export default function App() {
             </h3>
 
             {grouped[key].map(e=>(
-              <div key={e.id} style={{
-                background:"#fff",
-                padding:20,
-                borderRadius:12,
-                marginTop:10,
-                border: editingId === e.id ? "2px solid red" : "none"
-              }}>
+              <div key={e.id} style={cardStyle}>
                 <div style={{display:"flex", justifyContent:"space-between"}}>
                   <div>
-                    <div style={{color:"#777"}}>{formatDate(e.date)}</div>
-                    <b>{e.type}</b><br/>
-                    {e.note}
+                    <div style={{color:"#777", fontSize:13}}>
+                      {formatDate(e.date)}
+                    </div>
+
+                    <div style={{marginTop:6}}>
+                      <b>{e.type}</b>
+                    </div>
+
+                    <div style={{color:"#666", marginTop:4}}>
+                      {e.note}
+                    </div>
                   </div>
 
                   <div style={{textAlign:"right"}}>
-                    <h2>{e.hours}h</h2>
-                    <div style={{fontSize:12}}>
+                    <div style={{fontSize:28, fontWeight:600}}>
+                      {e.hours}h
+                    </div>
+                    <div style={{fontSize:12, color:"#777"}}>
                       {e.start} - {e.end}
                     </div>
                   </div>
                 </div>
 
-                <div style={{marginTop:10}}>
-                  <button onClick={()=>handleEdit(e)}>Modifica</button>
-                  <button onClick={()=>handleDelete(e.id)} style={{color:"red"}}>Elimina</button>
+                <div style={{marginTop:12, display:"flex", gap:10}}>
+                  <button style={ghostBtn} onClick={()=>handleEdit(e)}>Modifica</button>
+                  <button style={dangerBtn} onClick={()=>handleDelete(e.id)}>Elimina</button>
                 </div>
               </div>
             ))}
@@ -200,10 +237,57 @@ export default function App() {
         );
       })}
 
+      {/* FOOTER */}
       <div style={{textAlign:"center", marginTop:40}}>
-        <img src="https://nutsadv.it/wp-content/uploads/nuts_lettering_black.png" style={{width:120}}/>
+        <img src="https://nutsadv.it/wp-content/uploads/nuts_lettering_black.png" style={{width:140, opacity:0.6}}/>
       </div>
 
     </div>
   );
 }
+
+/* STILI */
+
+const inputStyle = {
+  width:"100%",
+  padding:12,
+  borderRadius:10,
+  border:"1px solid #ddd"
+};
+
+const cardStyle = {
+  background:"#fff",
+  padding:20,
+  borderRadius:16,
+  marginTop:12,
+  boxShadow:"0 4px 20px rgba(0,0,0,0.05)"
+};
+
+const primaryBtn = {
+  marginTop:16,
+  width:"100%",
+  padding:14,
+  borderRadius:12,
+  border:"none",
+  background:"#000",
+  color:"#fff",
+  fontWeight:600,
+  cursor:"pointer"
+};
+
+const ghostBtn = {
+  padding:"8px 14px",
+  borderRadius:10,
+  border:"1px solid #ddd",
+  background:"#fff",
+  cursor:"pointer"
+};
+
+const dangerBtn = {
+  padding:"8px 14px",
+  borderRadius:10,
+  border:"1px solid #ff4d4d",
+  background:"#fff",
+  color:"#ff4d4d",
+  cursor:"pointer"
+};
