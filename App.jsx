@@ -203,12 +203,6 @@ export default function App() {
               <button onClick={() => handleDelete(i)} style={dangerBtn}>Elimina</button>
             </div>
           </div>
-      <div style={{ textAlign: "center", marginTop: 40 }}>
-  <img
-    src="https://nutsadv.it/wp-content/uploads/nuts_lettering_black.png"
-    style={{ height: 22, opacity: 0.6 }}
-  />
-</div>
         ))}
 
       </div>
