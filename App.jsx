@@ -120,8 +120,31 @@ export default function App() {
           </div>
 
           <div>
-            <button onClick={() => setEnd("18:00")} style={ghostBtn}>+8h</button>
-            <button onClick={() => setEnd("14:00")} style={ghostBtn}>+4h</button>
+            <button
+  onClick={() => {
+    const [h, m] = start.split(":").map(Number);
+    const newEnd = new Date();
+    newEnd.setHours(h + 8);
+    newEnd.setMinutes(m);
+    setEnd(newEnd.toTimeString().slice(0, 5));
+  }}
+  style={ghostBtn}
+>
+  +8h
+</button>
+
+<button
+  onClick={() => {
+    const [h, m] = start.split(":").map(Number);
+    const newEnd = new Date();
+    newEnd.setHours(h + 4);
+    newEnd.setMinutes(m);
+    setEnd(newEnd.toTimeString().slice(0, 5));
+  }}
+  style={ghostBtn}
+>
+  +4h
+</button>
           </div>
 
           <select value={activity} onChange={(e) => setActivity(e.target.value)} style={input}>
