@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const activities = [
   "Video Production",
@@ -34,6 +34,19 @@ export default function App() {
   const [activity, setActivity] = useState("");
   const [note, setNote] = useState("");
   const [entries, setEntries] = useState([]);
+
+  // 🔥 LOAD DATI ALL'AVVIO
+  useEffect(() => {
+    const saved = localStorage.getItem("nuts-tracker");
+    if (saved) {
+      setEntries(JSON.parse(saved));
+    }
+  }, []);
+
+  // 🔥 SALVA OGNI VOLTA CHE CAMBIA
+  useEffect(() => {
+    localStorage.setItem("nuts-tracker", JSON.stringify(entries));
+  }, [entries]);
 
   const handleAdd = () => {
     if (!date) {
@@ -82,7 +95,6 @@ export default function App() {
           />
         </div>
 
-        {/* Attività */}
         <div style={{ marginTop: 10 }}>
           <select
             value={activity}
@@ -95,7 +107,6 @@ export default function App() {
           </select>
         </div>
 
-        {/* Note */}
         <div style={{ marginTop: 10 }}>
           <textarea
             placeholder="Dettaglio attività (opzionale)"
