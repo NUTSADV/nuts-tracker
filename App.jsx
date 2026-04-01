@@ -19,14 +19,21 @@ const toDecimalHours = (start, end) => {
   return Math.round(((eh * 60 + em) - (sh * 60 + sm)) / 30) / 2;
 };
 
-const formatDate = (dateStr) => {
+const formatDateFull = (dateStr) => {
   const d = new Date(dateStr);
-  return d.toLocaleDateString("it-IT", {
-    weekday: "short",
+
+  const giorno = d.toLocaleDateString("it-IT", { weekday: "long" });
+  const data = d.toLocaleDateString("it-IT", {
     day: "2-digit",
-    month: "short",
+    month: "long",
     year: "numeric",
   });
+
+  return {
+    giorno: giorno.charAt(0).toUpperCase() + giorno.slice(1),
+    data,
+    meseKey: dateStr.slice(0, 7),
+  };
 };
 
 export default function App() {
@@ -37,6 +44,7 @@ export default function App() {
   const [note, setNote] = useState("");
   const [entries, setEntries] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [filterMonth, setFilterMonth] = useState("all");
 
   useEffect(() => {
     const saved = localStorage.getItem("nuts-tracker");
@@ -87,10 +95,19 @@ export default function App() {
   const remaining = TOTAL_HOURS - totalWorked;
   const progress = Math.min((totalWorked / TOTAL_HOURS) * 100, 100);
 
+  const grouped = entries
+    .filter(e => filterMonth === "all" || e.date.startsWith(filterMonth))
+    .reduce((acc, e) => {
+      const key = e.date.slice(0, 7);
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(e);
+      return acc;
+    }, {});
+
   return (
     <div style={wrapper}>
       <div style={container}>
-        
+
         {/* HEADER */}
         <div style={{ marginBottom: 20 }}>
           <img
@@ -119,32 +136,33 @@ export default function App() {
             <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} style={input}/>
           </div>
 
-          <div>
+          {/* QUICK BUTTONS */}
+          <div style={{ marginTop: 12 }}>
             <button
-  onClick={() => {
-    const [h, m] = start.split(":").map(Number);
-    const newEnd = new Date();
-    newEnd.setHours(h + 8);
-    newEnd.setMinutes(m);
-    setEnd(newEnd.toTimeString().slice(0, 5));
-  }}
-  style={ghostBtn}
->
-  +8h
-</button>
+              onClick={() => {
+                const [h, m] = start.split(":").map(Number);
+                const d = new Date();
+                d.setHours(h + 8);
+                d.setMinutes(m);
+                setEnd(d.toTimeString().slice(0,5));
+              }}
+              style={ghostBtn}
+            >
+              +8h
+            </button>
 
-<button
-  onClick={() => {
-    const [h, m] = start.split(":").map(Number);
-    const newEnd = new Date();
-    newEnd.setHours(h + 4);
-    newEnd.setMinutes(m);
-    setEnd(newEnd.toTimeString().slice(0, 5));
-  }}
-  style={ghostBtn}
->
-  +4h
-</button>
+            <button
+              onClick={() => {
+                const [h, m] = start.split(":").map(Number);
+                const d = new Date();
+                d.setHours(h + 4);
+                d.setMinutes(m);
+                setEnd(d.toTimeString().slice(0,5));
+              }}
+              style={ghostBtn}
+            >
+              +4h
+            </button>
           </div>
 
           <select value={activity} onChange={(e) => setActivity(e.target.value)} style={input}>
@@ -156,7 +174,7 @@ export default function App() {
             placeholder="Dettaglio attività"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            style={input}
+            style={{ ...input, minHeight: 80 }}
           />
 
           <button onClick={handleAdd} style={mainBtn}>
@@ -174,36 +192,72 @@ export default function App() {
             <div style={{ ...progressFill, width: `${progress}%` }} />
           </div>
 
-          <div>
+          <div style={{ marginTop: 10 }}>
             <strong>{totalWorked}h</strong> — <strong>{remaining}h</strong>
           </div>
         </div>
 
+        {/* FILTRO */}
+        <div style={{ marginTop: 20 }}>
+          <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} style={input}>
+            <option value="all">Tutti i mesi</option>
+            {[...new Set(entries.map(e => e.date.slice(0,7)))].map(m => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+
         {/* LISTA */}
-        {entries.map((e, i) => (
-          <div key={i} style={{
-            ...card,
-            border: editingIndex === i ? "2px solid #111" : "1px solid transparent"
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ fontWeight: 600 }}>{formatDate(e.date)}</div>
-                <div style={{ fontWeight: 600 }}>{e.activity}</div>
-                <div style={{ color: "#666" }}>{e.note}</div>
-              </div>
-
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 28, fontWeight: 700 }}>{e.hours}h</div>
-                <div style={{ fontSize: 12 }}>{e.start} - {e.end}</div>
-              </div>
+        {Object.entries(grouped).map(([mese, items]) => (
+          <div key={mese}>
+            <div style={{ marginTop: 30, fontWeight: 700, fontSize: 18 }}>
+              {new Date(mese + "-01").toLocaleDateString("it-IT", {
+                month: "long",
+                year: "numeric"
+              })}
             </div>
 
-            <div style={{ marginTop: 10 }}>
-              <button onClick={() => handleEdit(i)} style={ghostBtn}>Modifica</button>
-              <button onClick={() => handleDelete(i)} style={dangerBtn}>Elimina</button>
-            </div>
+            {items.map((e, i) => {
+              const { giorno, data } = formatDateFull(e.date);
+
+              return (
+                <div key={i} style={{
+                  ...card,
+                  border: editingIndex === i ? "2px solid #111" : "1px solid transparent"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+
+                    <div>
+                      <div style={{ fontSize: 13, color: "#888" }}>{giorno}</div>
+                      <div style={{ fontSize: 16, marginBottom: 10 }}>{data}</div>
+
+                      <div style={{ fontWeight: 600 }}>{e.activity}</div>
+                      <div style={{ color: "#666", marginBottom: 10 }}>{e.note}</div>
+                    </div>
+
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 28, fontWeight: 700 }}>{e.hours}h</div>
+                      <div style={{ fontSize: 12 }}>{e.start} - {e.end}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 10 }}>
+                    <button onClick={() => handleEdit(i)} style={ghostBtn}>Modifica</button>
+                    <button onClick={() => handleDelete(i)} style={dangerBtn}>Elimina</button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ))}
+
+        {/* FOOTER */}
+        <div style={{ textAlign: "center", marginTop: 40 }}>
+          <img
+            src="https://nutsadv.it/wp-content/uploads/nuts_lettering_black.png"
+            style={{ height: 22, opacity: 0.6 }}
+          />
+        </div>
 
       </div>
     </div>
@@ -260,7 +314,6 @@ const ghostBtn = {
   background: "#fff",
   marginRight: 8,
   cursor: "pointer",
-  fontWeight: 500,
 };
 
 const dangerBtn = {
