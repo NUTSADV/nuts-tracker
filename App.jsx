@@ -1,107 +1,79 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 
-const toTime = (min) => {
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+const toDecimalHours = (start, end) => {
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+
+  const startMin = sh * 60 + sm;
+  const endMin = eh * 60 + em;
+
+  const diff = endMin - startMin;
+  return Math.round(diff / 30) / 2; // arrotonda a 0.5
 };
 
 export default function App() {
-  const [startMin, setStartMin] = useState(600);
-  const [endMin, setEndMin] = useState(1080);
+  const [date, setDate] = useState("");
+  const [start, setStart] = useState("10:00");
+  const [end, setEnd] = useState("18:00");
+  const [entries, setEntries] = useState([]);
 
-  const trackRef = useRef(null);
-  const [dragging, setDragging] = useState(null);
-
-  const handleMove = (clientX) => {
-    const rect = trackRef.current.getBoundingClientRect();
-    const percent = (clientX - rect.left) / rect.width;
-    const min = 420 + percent * (1200 - 420);
-    const snapped = Math.round(min / 30) * 30;
-
-    if (dragging === "start") {
-      setStartMin(Math.min(snapped, endMin - 30));
+  const handleAdd = () => {
+    if (!date) {
+      alert("Inserisci la data");
+      return;
     }
-    if (dragging === "end") {
-      setEndMin(Math.max(snapped, startMin + 30));
-    }
-  };
 
-  useEffect(() => {
-    const move = (e) => dragging && handleMove(e.clientX);
-    const up = () => setDragging(null);
+    const hours = toDecimalHours(start, end);
 
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
-
-    return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
+    const newEntry = {
+      date,
+      start,
+      end,
+      hours,
     };
-  });
+
+    setEntries([newEntry, ...entries]);
+    setDate("");
+  };
 
   return (
     <div style={{ padding: 40, fontFamily: "Poppins" }}>
       <h1>Internship Tracker</h1>
 
-      <div style={{ marginTop: 40 }}>
-        <p>Orario</p>
+      {/* FORM */}
+      <div style={{ marginTop: 30 }}>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
 
-        <div
-          ref={trackRef}
-          style={{
-            position: "relative",
-            height: 40,
-            background: "#eee",
-            borderRadius: 20,
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              height: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              background: "black",
-              left: `${((startMin - 420) / (1200 - 420)) * 100}%`,
-              width: `${((endMin - startMin) / (1200 - 420)) * 100}%`,
-            }}
+        <div style={{ marginTop: 10 }}>
+          <input
+            type="time"
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
           />
-
-          <div
-            onMouseDown={() => setDragging("start")}
-            style={{
-              position: "absolute",
-              width: 20,
-              height: 20,
-              background: "black",
-              borderRadius: "50%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
-              left: `${((startMin - 420) / (1200 - 420)) * 100}%`,
-              cursor: "pointer",
-            }}
-          />
-
-          <div
-            onMouseDown={() => setDragging("end")}
-            style={{
-              position: "absolute",
-              width: 20,
-              height: 20,
-              background: "black",
-              borderRadius: "50%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
-              left: `${((endMin - 420) / (1200 - 420)) * 100}%`,
-              cursor: "pointer",
-            }}
+          {" → "}
+          <input
+            type="time"
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
           />
         </div>
 
-        <p style={{ marginTop: 20 }}>
-          {toTime(startMin)} - {toTime(endMin)}
-        </p>
+        <button style={{ marginTop: 10 }} onClick={handleAdd}>
+          Aggiungi giornata
+        </button>
+      </div>
+
+      {/* LISTA */}
+      <div style={{ marginTop: 40 }}>
+        {entries.map((e, i) => (
+          <div key={i} style={{ marginBottom: 10 }}>
+            <strong>{e.date}</strong> — {e.hours} ore ({e.start} - {e.end})
+          </div>
+        ))}
       </div>
     </div>
   );
