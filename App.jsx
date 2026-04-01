@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 
-const TOTAL_HOURS = 225;
-
 const toTime = (min) => {
   const h = Math.floor(min / 60);
   const m = min % 60;
@@ -108,4 +106,3 @@ export default function App() {
     </div>
   );
 }
-//test
