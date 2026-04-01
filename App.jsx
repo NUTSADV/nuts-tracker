@@ -133,6 +133,10 @@ export default function App() {
 
         <input
           type="date"
+          style={{
+    ...inputStyle,
+    border: error ? "2px solid red" : "1px solid #ddd"
+  }}
           value={date}
           onChange={e=>{setDate(e.target.value); setError(false)}}
           style={{
@@ -250,9 +254,12 @@ export default function App() {
 
 const inputStyle = {
   width:"100%",
-  padding:12,
+  padding:"12px 14px",
   borderRadius:10,
-  border:"1px solid #ddd"
+  border:"1px solid #ddd",
+  fontFamily:"Poppins, sans-serif",
+  fontSize:14,
+  boxSizing:"border-box"
 };
 
 const cardStyle = {
